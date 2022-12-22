@@ -8,14 +8,14 @@ jobs:
       - run: yarn
       - run: yarn make-it-beautiful
 
-  test:
-    docker:
-      - image: cimg/node:lts
-    steps:
-      - checkout
-      - run: yarn
-      - run: yarn build
-      - run: yarn test
+  # test:
+  #   docker:
+  #     - image: cimg/node:lts
+  #   steps:
+  #     - checkout
+  #     - run: yarn
+  #     - run: yarn build
+  #     - run: yarn test
 
   release:
     docker:
@@ -28,13 +28,13 @@ jobs:
 
 workflows:
   version: 2
-  test_and_release:
+  lint_and_release:
     jobs:
       - lint
-      - test
+      # - test
       - release:
           requires:
-            - test
+            - lint
           filters:
             branches:
               only: master

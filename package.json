@@ -1,7 +1,7 @@
 {
-  "name": "vuex-orm-grpc",
+  "name": "vuex-orm-get-or-fetch",
   "version": "0.0.0",
-  "description": "This plugin allow you to perform grpc call from your vuex orm models",
+  "description": "Allow to get data from the registered model in the vuex-orm store entities or to fetch it by an api call",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
@@ -13,33 +13,18 @@
     "test": "jest",
     "tsc": "tsc",
     "build": "rimraf dist && tsc && rollup -c",
-    "build-dev": "tsc && rollup -c",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "make-it-beautiful": "tslint -p tsconfig.json && prettier --write \"src/**/*.ts\"",
-    "semantic-release": "semantic-release",
-    "watch": "npm-watch"
+    "semantic-release": "semantic-release"
   },
-  "watch": {
-    "build-dev": {
-      "patterns": [
-        "src"
-      ],
-      "extensions": "js, ts"
-    }
-  },
-  "author": "Jabert",
-  "license": "",
+  "dependencies": {},
   "devDependencies": {
     "@open-wc/building-rollup": "^1.10.0",
     "@types/jest": "^26.0.23",
     "@vuex-orm/core": "^0.36.4",
-    "deepmerge": "^4.2.2",
-    "google-protobuf": "^3.17.3",
-    "grpc-web": "^1.2.1",
     "husky": "^6.0.0",
     "jest": "^27.0.4",
-    "npm-watch": "^0.9.0",
     "prettier": "^2.3.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.48.0",
@@ -52,21 +37,22 @@
     "vue": "^2.6.12",
     "vuex": "^3.6.2"
   },
-  "dependencies": {},
+  "peerDependencies": {
+    "@vuex-orm/core": ">=0.36.4"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/socotecio/vuex-orm-grpc.git"
+    "url": "https://github.com/socotecio/vuex-orm-get-or-fetch.git"
   },
   "keywords": [
     "vue",
     "vuex",
-    "vuex-orm",
-    "grpc",
-    "protobuf"
+    "vuex-orm"
   ],
   "husky": {
     "hooks": {
       "pre-commit": "make-it-beautiful"
     }
-  }
+  },
+  "license": "MIT"
 }

@@ -1,20 +1,21 @@
 import typescript from 'rollup-plugin-typescript2'
 import pkg from './package.json'
 export default {
-  input: 'dist/index.js',
+  input: 'src/index.ts',
   output: [
     {
       file: pkg.main,
       format: 'cjs',
+      exports: "default"
     },
     {
       file: pkg.module,
       format: 'es',
+      exports: "default"
     },
   ],
   external: [
-    ...Object.keys(pkg.dependencies || {}),
-    ...Object.keys(pkg.peerDependencies || {}),
+    "@vuex-orm/core"
   ],
   plugins: [
     typescript({
