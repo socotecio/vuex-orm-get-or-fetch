@@ -1,4 +1,10 @@
-import { BelongsTo, Relation, Model, Collection } from "@vuex-orm/core";
+import {
+  BelongsTo,
+  Relation,
+  Model,
+  Collection,
+  Database,
+} from "@vuex-orm/core";
 
 const fetchMap = {};
 
@@ -126,7 +132,7 @@ const getFromStoreOrFetchMany = async ({
 };
 
 export default {
-  install(components: any, { database }: any) {
+  install(components: any, { database }: { database: Database }) {
     /**
      * Query for a model instance or dispatch a store action if none found
      * By default, uses the model `retrieveAction` and looks for a matching uuid.
