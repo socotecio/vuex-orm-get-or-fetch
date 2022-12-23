@@ -1,9 +1,4 @@
-import {
-  BelongsTo,
-  Relation,
-  Model,
-  Collection, // eslint-disable-line no-unused-vars
-} from "@vuex-orm/core";
+import { BelongsTo, Relation, Model, Collection } from "@vuex-orm/core";
 
 const fetchMap = {};
 
@@ -130,38 +125,6 @@ const getFromStoreOrFetchMany = async ({
   return getMany(uuidList);
 };
 
-// declare module "@vuex-orm/core" {
-//   interface Query {
-//     getFromStoreOrFetchOne(uuid: string,
-//       action: string,
-//       findByUuid: boolean): Promise<Model | void>
-
-//     getFromStoreOrFetchMany( uuidList: string[],
-//       fetchParams: any,
-//       paginated: boolean,
-//       action: string): Promise<Collection<Model> | void>
-
-//     getFromStoreOrFetchWhere(callbackFn: Function,
-//       fetchParams: any): Promise<Collection<Model> | void>
-//   }
-
-//   class Model {
-//     static retrieveAction: string
-//     static listAction: string
-//     static listAllAction: string
-
-//     getFromStoreOrFetchRelated(
-//       relationField: string,
-//       uuidList: string[],
-//       fetchParams: any
-//     ): Promise<Collection<Model> | void>
-
-//     getFromStoreOrFetchBelongsTo(
-//       belongsToField: string
-//     ): Promise<Model | void>
-//   }
-// }
-
 export default {
   install(components: any, { database }: any) {
     /**
@@ -278,14 +241,12 @@ export default {
       const field = this.$fields()[relationField];
 
       if (!field) {
-        throw new Error(
-          `Field ${relationField} does not exist on model ${this.name}`
-        );
+        throw new Error(`Field ${relationField} does not exist`);
       }
 
       if (!(field instanceof Relation)) {
         throw new Error(
-          `${relationField} is not a Relation field on model ${this.name}`
+          `${relationField} is not a Relation field on model ${field.model.name}`
         );
       }
 
@@ -307,7 +268,7 @@ export default {
       } catch (error) {
         console.error(
           error,
-          `Failed to resolve ${this.name}[${this.$id}].${relationField}: ${uuidList}`
+          `Failed to resolve ${related.name}[${this.$id}].${relationField}: ${uuidList}`
         );
       }
     };
@@ -323,14 +284,12 @@ export default {
       const field = this.$fields()[belongsToField];
 
       if (!field) {
-        throw new Error(
-          `Field ${belongsToField} does not exist on model ${this.name}`
-        );
+        throw new Error(`Field ${belongsToField} does not exist`);
       }
 
       if (!(field instanceof BelongsTo)) {
         throw new Error(
-          `${belongsToField} is not a Belongs To field on model ${this.name}`
+          `${belongsToField} is not a Belongs To field on model ${field.model.name}`
         );
       }
 
@@ -356,7 +315,7 @@ export default {
       } catch (error) {
         console.error(
           error,
-          `Failed to resolve ${this.name}[${this.$id}].${belongsToField}: ${uuid}`
+          `Failed to resolve ${parent.name}[${this.$id}].${belongsToField}: ${uuid}`
         );
       }
     };
@@ -366,8 +325,10 @@ export default {
      */
     components.Model.prototype.withAll = function () {
       let id = this.$id;
-      if (Array.isArray(this.$primaryKey())) id = JSON.parse(id);
-      return this.$query().withAll().find(id);
+      if (Array.isArray(this.$primaryKey())) id = JSON.parse(id || "");
+      return this.$query()
+        .withAll()
+        .find(id || "");
     };
     /**
      * Resolves all relations recursively :
@@ -375,8 +336,10 @@ export default {
      */
     components.Model.prototype.withAllRecursive = function (depth = 1) {
       let id = this.$id;
-      if (Array.isArray(this.$primaryKey())) id = JSON.parse(id);
-      return this.$query().withAllRecursive(depth).find(id);
+      if (Array.isArray(this.$primaryKey())) id = JSON.parse(id || "");
+      return this.$query()
+        .withAllRecursive(depth)
+        .find(id || "");
     };
     /**
      * Resolves one relation :
@@ -384,8 +347,10 @@ export default {
      */
     components.Model.prototype.with = function (withField: string) {
       let id = this.$id;
-      if (Array.isArray(this.$primaryKey())) id = JSON.parse(id);
-      return this.$query().with(withField).find(id);
+      if (Array.isArray(this.$primaryKey())) id = JSON.parse(id || "");
+      return this.$query()
+        .with(withField)
+        .find(id || "");
     };
 
     database.entities.forEach((model: any) => {
