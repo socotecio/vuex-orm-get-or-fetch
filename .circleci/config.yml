@@ -2,7 +2,7 @@ version: 2
 jobs:
   lint:
     docker:
-      - image: cimg/node:lts
+      - image: cimg/node:14.18.3
     steps:
       - checkout
       - run: yarn
@@ -10,7 +10,7 @@ jobs:
 
   # test:
   #   docker:
-  #     - image: cimg/node:lts
+  #     - image: cimg/node:14.18.3
   #   steps:
   #     - checkout
   #     - run: yarn
@@ -19,7 +19,7 @@ jobs:
 
   release:
     docker:
-      - image: cimg/node:lts
+      - image: cimg/node:14.18.3
     steps:
       - checkout
       - run: node --version
