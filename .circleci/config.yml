@@ -22,7 +22,6 @@ jobs:
       - image: cimg/node:14.18.3
     steps:
       - checkout
-      - run: node --version
       - run: yarn
       - run: yarn build
       - run: npx semantic-release
