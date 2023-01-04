@@ -16,5 +16,9 @@ import VuexORM from "@vuex-orm/core";
 import VuexOrmGetOrFetch from "vuex-orm-get-or-fetch";
 
 Vue.use(Vuex);
-VuexORM.use(VuexOrmGetOrFetch);
+
+const database = new VuexORM.Database();
+database.register(YourModel);
+
+VuexORM.use(VuexOrmGetOrFetch, { database });
 ```
