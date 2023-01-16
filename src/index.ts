@@ -3,10 +3,16 @@ import {
   Relation,
   Model,
   Collection,
-  Database,
+  Query,
+  Item,
 } from "@vuex-orm/core";
+import { Store } from "vuex";
 
-const fetchMap = {};
+interface UUIDModel extends Model {
+  uuid: string;
+}
+
+const fetchMap: { [uuid: string]: Promise<any> } = {};
 
 const addToFetchMap = async (promise: Promise<any>, ...uuids: string[]) => {
   uuids.forEach((uuid) => {
@@ -22,27 +28,33 @@ const addToFetchMap = async (promise: Promise<any>, ...uuids: string[]) => {
   }
 };
 
-const fetch = async ({ store, action, payload }: any) => {
+const fetch = async ({
+  store,
+  action,
+  payload,
+}: {
+  store: Store<any>;
+  action: string;
+  payload: any;
+}) => {
   return await store.dispatch(action, payload);
 };
 
-/**
- * @param {object} params
- * @param {Query} params.query
- * @param {String} params.uuid
- * @param {String} params.action
- * @returns {Promise<Model | null>}
- */
-const getFromStoreOrFetchOne = async ({
+const getFromStoreOrFetchOne = async <M extends UUIDModel>({
   query,
   uuid,
   action,
   findByUuid = true,
-}: any): Promise<Model | void> => {
+}: {
+  query: Query<M>;
+  uuid: string;
+  action: string;
+  findByUuid?: boolean;
+}) => {
   const find = (uuidValue: string) =>
     findByUuid ? query.withAll().find(uuidValue) : query.withAll().first();
   if (find(uuid) === null)
-    if (fetchMap[uuid]) {
+    if (fetchMap.hasOwnProperty(uuid)) {
       await fetchMap[uuid];
     } else {
       await addToFetchMap(
@@ -57,19 +69,17 @@ const getFromStoreOrFetchOne = async ({
   return find(uuid);
 };
 
-/**
- * @param {object} params
- * @param {Function} params.callbackFn
- * @param {Query} params.query
- * @param {String} params.action
- * @returns {Promise<Collection<Model>>}
- */
-const getFromStoreOrFetchWhere = async ({
+const getFromStoreOrFetchWhere = async <M extends UUIDModel>({
   query,
   callbackFn,
   action,
   fetchParams,
-}: any): Promise<Collection<Model>> => {
+}: {
+  query: Query<any>;
+  callbackFn: (item: any) => any;
+  action: string;
+  fetchParams?: any;
+}): Promise<Collection<M>> => {
   const filterMany = (filterFn: (item: any) => any) =>
     query
       .where((item: any) => filterFn(item))
@@ -81,46 +91,43 @@ const getFromStoreOrFetchWhere = async ({
   }
   return filterMany(callbackFn);
 };
-/**
- * @param {object} params
- * @param {Function} params.callbackFn
- * @param {Query} params.query
- * @param {string[]} params.uuidList
- * @param {String} params.action
- * @returns {Promise<Collection<Model>>}
- */
-const getFromStoreOrFetchMany = async ({
+
+const getFromStoreOrFetchMany = async <M extends UUIDModel>({
   query,
   uuidList,
   action,
   fetchParams,
-}: any) => {
+}: {
+  query: Query<M>;
+  uuidList: string[];
+  action: string;
+  fetchParams?: any;
+}): Promise<Collection<M>> => {
   uuidList = [...new Set(uuidList)];
 
   const getMany = (uuids: string[]) => query.whereIdIn(uuids).withAll().get();
 
-  const inStoreUuids = getMany(uuidList).map(({ uuid }: any) => uuid);
+  const inStoreUuids = getMany(uuidList).map(({ uuid }) => uuid);
   if (inStoreUuids.length !== uuidList.length) {
-    const notInFetchMapUuid = uuidList.filter(
-      (uuid: string) => !fetchMap[uuid]
+    const uuidsToFetch = uuidList.filter(
+      (uuid: string) => !inStoreUuids.includes(uuid) && !fetchMap[uuid]
     );
 
-    await addToFetchMap(
-      fetch({
-        store: query.store,
-        action,
-        payload: fetchParams ?? {
-          metadata: {
-            filters: JSON.stringify({
-              uuid__in: notInFetchMapUuid
-                .filter((uuid: string) => !inStoreUuids.includes(uuid))
-                .join(),
-            }),
+    if (uuidsToFetch.length)
+      await addToFetchMap(
+        fetch({
+          store: query.store,
+          action,
+          payload: fetchParams ?? {
+            metadata: {
+              filters: JSON.stringify({
+                uuid__in: uuidsToFetch,
+              }),
+            },
           },
-        },
-      }),
-      ...notInFetchMapUuid
-    );
+        }),
+        ...uuidsToFetch
+      );
 
     await Promise.all(
       Object.entries(fetchMap)
@@ -132,7 +139,7 @@ const getFromStoreOrFetchMany = async ({
 };
 
 export default {
-  install(components: any, { database }: { database: Database }) {
+  install(components: any) {
     /**
      * Query for a model instance or dispatch a store action if none found
      * By default, uses the model `retrieveAction` and looks for a matching uuid.
@@ -144,7 +151,7 @@ export default {
       uuid: string,
       action: string,
       findByUuid = true
-    ): Promise<Model | void> {
+    ): Promise<Item<Model>> {
       if (!action) {
         action = this.model.retrieveAction;
       }
@@ -165,6 +172,7 @@ export default {
           error,
           `Failed to resolve ${this.baseModel.name}.getFromStoreOrFetchOne : ${uuid}`
         );
+        throw error;
       }
     };
 
@@ -178,7 +186,7 @@ export default {
       fetchParams: any,
       paginated = true,
       action: string
-    ): Promise<Collection<Model> | void> {
+    ): Promise<Collection<Model>> {
       const { listAction, listAllAction } = this.model;
       if (!action) {
         if (!listAction && !listAllAction) {
@@ -200,6 +208,7 @@ export default {
           error,
           `Failed to resolve ${this.baseModel.name}.getFromStoreOrFetchMany : ${uuidList}`
         );
+        throw error;
       }
     };
 
@@ -276,6 +285,7 @@ export default {
           error,
           `Failed to resolve ${related.name}[${this.$id}].${relationField}: ${uuidList}`
         );
+        throw error;
       }
     };
 
@@ -286,7 +296,7 @@ export default {
      */
     components.Model.prototype.getFromStoreOrFetchBelongsTo = async function (
       belongsToField: string
-    ): Promise<Model | void> {
+    ): Promise<Item<Model>> {
       const field = this.$fields()[belongsToField];
 
       if (!field) {
@@ -309,7 +319,7 @@ export default {
       const uuid = this[field.foreignKey];
 
       if (!uuid) {
-        return;
+        return null;
       }
 
       try {
@@ -323,6 +333,7 @@ export default {
           error,
           `Failed to resolve ${parent.name}[${this.$id}].${belongsToField}: ${uuid}`
         );
+        throw error;
       }
     };
     /**
@@ -358,9 +369,5 @@ export default {
         .with(withField)
         .find(id || "");
     };
-
-    database.entities.forEach((model: any) => {
-      fetchMap[model.name] = {};
-    });
   },
 };
