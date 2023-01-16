@@ -121,7 +121,7 @@ const getFromStoreOrFetchMany = async <M extends UUIDModel>({
           payload: fetchParams ?? {
             metadata: {
               filters: JSON.stringify({
-                uuid__in: uuidsToFetch,
+                uuid__in: uuidsToFetch.join(),
               }),
             },
           },
