@@ -1,4 +1,4 @@
-import { UUIDModel } from './../interfaces/UuidModel';
+import { UUIDModel } from "./../interfaces/UuidModel";
 import { BelongsTo, Model as BaseModel, Relation } from "@vuex-orm/core";
 import { getFromStoreOrFetchMany, getFromStoreOrFetchOne } from "../functions";
 import { FetchParams } from "../types/vuex-orm";

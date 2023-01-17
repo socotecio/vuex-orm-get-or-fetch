@@ -1,4 +1,4 @@
-import { UUIDModel } from './interfaces/UuidModel';
+import { UUIDModel } from "./interfaces/UuidModel";
 import { Query, Model } from "@vuex-orm/core";
 import { Components } from "./interfaces/Components";
 import { Query as QueryMixin } from "./mixins/Query";

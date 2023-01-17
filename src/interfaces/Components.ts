@@ -1,4 +1,4 @@
-import { UUIDModel } from './UuidModel';
+import { UUIDModel } from "./UuidModel";
 import { Model, Query } from "@vuex-orm/core";
 
 export interface Components<M extends UUIDModel> {
