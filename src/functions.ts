@@ -1,3 +1,4 @@
+import { UUIDModel } from "./interfaces/UuidModel";
 import { Item, Query } from "@vuex-orm/core";
 import { Model } from "@vuex-orm/core";
 import { Collection } from "@vuex-orm/core";
@@ -78,43 +79,42 @@ export const getFromStoreOrFetchWhere = async ({
   return filterMany(callbackFn);
 };
 
-export const getFromStoreOrFetchMany = async ({
+export const getFromStoreOrFetchMany = async <M extends UUIDModel>({
   query,
   uuidList,
   action,
   fetchParams,
 }: {
-  query: Query;
+  query: Query<M>;
   uuidList: string[];
   action: string;
   fetchParams: FetchParams;
-}): Promise<Collection<Model>> => {
+}): Promise<Collection<M>> => {
   uuidList = [...new Set(uuidList)];
 
   const getMany = (uuids: string[]) => query.whereIdIn(uuids).withAll().get();
 
-  const inStoreUuids = getMany(uuidList).map(({ uuid }: any) => uuid);
+  const inStoreUuids = getMany(uuidList).map(({ uuid }) => uuid);
   if (inStoreUuids.length !== uuidList.length) {
-    const notInFetchMapUuid = uuidList.filter(
-      (uuid: string) => !fetchMap[uuid]
+    const uuidsToFetch = uuidList.filter(
+      (uuid: string) => !inStoreUuids.includes(uuid) && !fetchMap[uuid]
     );
 
-    await addToFetchMap(
-      fetch({
-        store: query.store,
-        action,
-        payload: fetchParams ?? {
-          metadata: {
-            filters: JSON.stringify({
-              uuid__in: notInFetchMapUuid
-                .filter((uuid: string) => !inStoreUuids.includes(uuid))
-                .join(),
-            }),
+    if (uuidsToFetch.length)
+      await addToFetchMap(
+        fetch({
+          store: query.store,
+          action,
+          payload: fetchParams ?? {
+            metadata: {
+              filters: JSON.stringify({
+                uuid__in: uuidsToFetch.join(),
+              }),
+            },
           },
-        },
-      }),
-      ...notInFetchMapUuid
-    );
+        }),
+        ...uuidsToFetch
+      );
 
     await Promise.all(
       Object.entries(fetchMap)

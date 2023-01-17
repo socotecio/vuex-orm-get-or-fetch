@@ -2,6 +2,7 @@ import { Item, Collection, Fields } from "@vuex-orm/core";
 
 declare module "@vuex-orm/core" {
   namespace Model {
+    export const uuid: string;
     export const $id: string | null;
     export const listAction: string;
     export const retrieveAction: string;

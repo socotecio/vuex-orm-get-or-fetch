@@ -1,3 +1,4 @@
+import { UUIDModel } from "./../interfaces/UuidModel";
 import { Query as BaseQuery, Model } from "@vuex-orm/core";
 import {
   getFromStoreOrFetchMany,
@@ -6,7 +7,9 @@ import {
 } from "../functions";
 import { FetchParams } from "../types/vuex-orm";
 
-export function Query(query: BaseQuery & typeof BaseQuery): void {
+export function Query<M extends UUIDModel>(
+  query: BaseQuery<M> & typeof BaseQuery
+): void {
   query.getFromStoreOrFetchOne = async function (
     uuid: string,
     action: string,

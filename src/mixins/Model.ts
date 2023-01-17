@@ -1,8 +1,9 @@
+import { UUIDModel } from './../interfaces/UuidModel';
 import { BelongsTo, Model as BaseModel, Relation } from "@vuex-orm/core";
 import { getFromStoreOrFetchMany, getFromStoreOrFetchOne } from "../functions";
 import { FetchParams } from "../types/vuex-orm";
 
-export function Model(model: BaseModel & typeof BaseModel): void {
+export function Model<M extends UUIDModel>(model: M & typeof BaseModel): void {
   model.getFromStoreOrFetchBelongsTo = async function (belongsToField: string) {
     const field = this.$fields()[belongsToField];
     if (!field) throw new Error(`Field ${belongsToField} does not exist`);
